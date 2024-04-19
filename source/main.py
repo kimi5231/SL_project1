@@ -14,4 +14,6 @@ def set_character_window():
 
 character_window = Tk()
 set_character_window()
+# 종료키 설정.
+character_window.bind('<Escape>', lambda e: character_window.quit())
 character_window.mainloop()
