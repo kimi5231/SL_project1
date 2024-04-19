@@ -10,6 +10,7 @@ class Character():
         self.window = Tk()
         self.current_character = Cat()
         self.image = ImageTk.PhotoImage(self.current_character.current_image)
+        self.label = Label(self.window, image=self.image, bg='white')
         self.init_self_window()
 
     def init_self_window(self):
@@ -23,6 +24,12 @@ class Character():
         self.window.attributes("-topmost", True, '-transparentcolor', 'white')
         # 종료키 설정.
         self.window.bind('<Escape>', lambda e: self.window.quit())
-        # 라벨을 이용해 sprite sheet를 윈도우에 띄움.
-        label = Label(self.window, image=self.image, bg='white')
-        label.pack(fill=BOTH, expand=True)
+        # 라벨을 윈도우에 추가.
+        self.label.pack(fill=BOTH, expand=True)
+
+    def update_label(self):
+        self.current_character.update()
+        self.current_character.draw()
+        self.image = ImageTk.PhotoImage(self.current_character.current_image)
+        self.label.configure(image=self.image)
+        self.window.after(10, self.update_label)
