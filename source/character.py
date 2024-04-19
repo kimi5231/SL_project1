@@ -12,13 +12,6 @@ class Character():
         self.image = ImageTk.PhotoImage(self.current_character.current_image)
         self.init_self_window()
 
-    def setting_self_window(self):
-        pass
-
-    def add_label(self):
-        label = Label(self.window, image=self.image, bg='white')
-        label.pack(fill=BOTH, expand=True)
-
     def init_self_window(self):
         # 윈도우 크기와 위치 설정.
         self.window.geometry(f'{self.width}x{self.height}+{self.x}+{self.y}')
@@ -30,4 +23,6 @@ class Character():
         self.window.attributes("-topmost", True, '-transparentcolor', 'white')
         # 종료키 설정.
         self.window.bind('<Escape>', lambda e: self.window.quit())
-        self.add_label()
+        # 라벨을 이용해 sprite sheet를 윈도우에 띄움.
+        label = Label(self.window, image=self.image, bg='white')
+        label.pack(fill=BOTH, expand=True)
