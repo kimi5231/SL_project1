@@ -5,10 +5,10 @@ from cat import Cat
 
 class Character:
     def __init__(self):
-        self.x, self.y = 0, 0
         self.width, self.height = 100, 100
         self.window = Tk()
         self.current_character = Cat()
+        self.x, self.y = self.current_character.x, self.current_character.y
         self.image = ImageTk.PhotoImage(self.current_character.current_image)
         self.label = Label(self.window, image=self.image, bg='white')
         self.init_self_window()
@@ -37,7 +37,5 @@ class Character:
 
     def update_window(self):
         self.update_label()
-        self.x += self.current_character.dir_x * self.current_character.speed
-        self.y += self.current_character.dir_y * self.current_character.speed
-        self.window.geometry(f'{self.width}x{self.height}+{self.x}+{self.y}')
+        self.window.geometry(f'{self.width}x{self.height}+{self.current_character.x}+{self.current_character.y}')
         self.window.after(10, self.update_window)
