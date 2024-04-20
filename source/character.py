@@ -1,12 +1,13 @@
 from tkinter import *
-from PIL import ImageTk
+from PIL import Image, ImageTk
 from cat import Cat
 
 
-class Character():
+class Character:
     def __init__(self):
         self.x, self.y = 0, 0
         self.width, self.height = 100, 100
+        self.dir_x, self.dir_y = 1, 1
         self.window = Tk()
         self.current_character = Cat()
         self.image = ImageTk.PhotoImage(self.current_character.current_image)
@@ -30,6 +31,8 @@ class Character():
     def update_label(self):
         self.current_character.update()
         self.current_character.cut()
+        if self.dir_x == -1:
+            self.current_character.current_image = self.current_character.current_image.transpose(Image.FLIP_LEFT_RIGHT)
         self.image = ImageTk.PhotoImage(self.current_character.current_image)
         self.label.configure(image=self.image)
         self.window.after(10, self.update_label)
