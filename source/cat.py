@@ -53,6 +53,7 @@ class Grooming:
 class Idle:
     @staticmethod
     def enter(cat, e): # Idle 상태로 들어갈 때 할 것
+        cat.speed = 0
         cat.frame, cat.action = 0, 0
         cat.frame_num = 4
         cat.current_time = time.time()
@@ -108,6 +109,8 @@ class StateMachine:
 
 class Cat:
     def __init__(self):
+        self.speed = 0
+        self.dir_x, self.dir_y = 1, 1
         self.frame, self.action = 0, 0
         self.frame_len = 100
         self.action_len = 100

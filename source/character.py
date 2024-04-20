@@ -7,7 +7,6 @@ class Character:
     def __init__(self):
         self.x, self.y = 0, 0
         self.width, self.height = 100, 100
-        self.dir_x, self.dir_y = 1, 1
         self.window = Tk()
         self.current_character = Cat()
         self.image = ImageTk.PhotoImage(self.current_character.current_image)
@@ -31,8 +30,14 @@ class Character:
     def update_label(self):
         self.current_character.update()
         self.current_character.cut()
-        if self.dir_x == -1:
+        if self.current_character.dir_x == -1:
             self.current_character.current_image = self.current_character.current_image.transpose(Image.FLIP_LEFT_RIGHT)
         self.image = ImageTk.PhotoImage(self.current_character.current_image)
         self.label.configure(image=self.image)
-        self.window.after(10, self.update_label)
+
+    def update_window(self):
+        self.update_label()
+        self.x += self.current_character.dir_x * self.current_character.speed
+        self.y += self.current_character.dir_y * self.current_character.speed
+        self.window.geometry(f'{self.width}x{self.height}+{self.x}+{self.y}')
+        self.window.after(10, self.update_window)
