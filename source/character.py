@@ -29,7 +29,7 @@ class Character():
 
     def update_label(self):
         self.current_character.update()
-        self.current_character.draw()
+        self.current_character.cut()
         self.image = ImageTk.PhotoImage(self.current_character.current_image)
         self.label.configure(image=self.image)
         self.window.after(10, self.update_label)
