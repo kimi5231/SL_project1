@@ -1,4 +1,6 @@
-from PIL import Image
+from tkinter import *
+from image_window import ImageWindow
+from PIL import Image, ImageTk
 import time
 import random
 import ctypes
@@ -39,6 +41,81 @@ def change_move_left_up(e):
     return e[0] == 'Change_Move_Left_Up'
 
 
+def move_left(e):
+    return e[0] == 'Move_Left'
+
+
+def bring_image(e):
+    return e[0] == 'Bring_Image'
+
+
+class BringImage:
+    @staticmethod
+    def enter(cat, e):
+        cat.speed = 1
+        cat.dir_x, cat.dir_y = -1, 0
+        cat.frame, cat.action = 0, 4
+        cat.frame_num = 8
+        cat.current_time = time.time()
+        cat.image_window = ImageWindow('Look at me!!!')
+        cat.image_window.window.geometry(f'300x300+{cat.x - 300}+{cat.y}')
+
+
+    @staticmethod
+    def exit(cat, e):
+        pass
+
+    @staticmethod
+    def do(cat):
+        cat.x += cat.speed
+        cat.y += cat.dir_y * cat.speed
+        cat.frame_time = time.time() - cat.current_time
+        cat.current_time += cat.frame_time
+        cat.frame = ((cat.frame + cat.frame_num * ACTION_PER_TIME * cat.frame_time) % cat.frame_num)
+        if cat.x == 300:
+            cat.image_window.window.overrideredirect(0)
+            cat.select_next_state()
+        cat.image_window.window.geometry(f'300x300+{cat.x - 280}+{cat.y}')
+
+    @staticmethod
+    def cut(cat):
+        cat.current_image = cat.image.crop((int(cat.frame) * cat.frame_len,
+                                            cat.action * cat.action_len,
+                                            int(cat.frame) * cat.frame_len + cat.frame_len,
+                                            cat.action * cat.action_len + cat.action_len))
+
+
+class MoveLeft:
+    @staticmethod
+    def enter(cat, e):
+        cat.speed = 1
+        cat.dir_x, cat.dir_y = -1, 0
+        cat.frame, cat.action = 0, 4
+        cat.frame_num = 8
+        cat.current_time = time.time()
+
+    @staticmethod
+    def exit(cat, e):
+        pass
+
+    @staticmethod
+    def do(cat):
+        cat.x += cat.dir_x * cat.speed
+        cat.y += cat.dir_y * cat.speed
+        cat.frame_time = time.time() - cat.current_time
+        cat.current_time += cat.frame_time
+        cat.frame = ((cat.frame + cat.frame_num * ACTION_PER_TIME * cat.frame_time) % cat.frame_num)
+        if 0 > cat.x + 150:
+            cat.state_machine.handle_event(('Bring_Image', 0))
+
+    @staticmethod
+    def cut(cat):
+        cat.current_image = cat.image.crop((int(cat.frame) * cat.frame_len,
+                                            cat.action * cat.action_len,
+                                            int(cat.frame) * cat.frame_len + cat.frame_len,
+                                            cat.action * cat.action_len + cat.action_len))
+
+
 class MoveLeftUp:
     @staticmethod
     def enter(cat, e):
@@ -62,6 +139,9 @@ class MoveLeftUp:
         cat.frame = ((cat.frame + cat.frame_num * ACTION_PER_TIME * cat.frame_time) % cat.frame_num)
         if time.time() - cat.start_time > 3.0:
              cat.select_next_state()
+        elif time.time() - cat.bring_image_time > 60.0:
+            cat.state_machine.handle_event(('Move_Left', 0))
+            cat.bring_image_time = time.time()
         if 0 > cat.x - 150 or 0 > cat.y - 150:
             cat.select_next_state()
 
@@ -95,7 +175,10 @@ class MoveLeftDown:
         cat.current_time += cat.frame_time
         cat.frame = ((cat.frame + cat.frame_num * ACTION_PER_TIME * cat.frame_time) % cat.frame_num)
         if time.time() - cat.start_time > 3.0:
-             cat.select_next_state()
+            cat.select_next_state()
+        elif time.time() - cat.bring_image_time > 60.0:
+            cat.state_machine.handle_event(('Move_Left', 0))
+            cat.bring_image_time = time.time()
         if 0 > cat.x - 150 or SH < cat.y + 150:
             cat.select_next_state()
 
@@ -129,7 +212,10 @@ class MoveRightUp:
         cat.current_time += cat.frame_time
         cat.frame = ((cat.frame + cat.frame_num * ACTION_PER_TIME * cat.frame_time) % cat.frame_num)
         if time.time() - cat.start_time > 3.0:
-             cat.select_next_state()
+            cat.select_next_state()
+        elif time.time() - cat.bring_image_time > 60.0:
+            cat.state_machine.handle_event(('Move_Left', 0))
+            cat.bring_image_time = time.time()
         if SW < cat.x + 150 or 0 > cat.y - 150:
             cat.select_next_state()
 
@@ -163,7 +249,10 @@ class MoveRightDown:
         cat.current_time += cat.frame_time
         cat.frame = ((cat.frame + cat.frame_num * ACTION_PER_TIME * cat.frame_time) % cat.frame_num)
         if time.time() - cat.start_time > 3.0:
-             cat.select_next_state()
+            cat.select_next_state()
+        elif time.time() - cat.bring_image_time > 60.0:
+            cat.state_machine.handle_event(('Move_Left', 0))
+            cat.bring_image_time = time.time()
         if SW < cat.x + 150 or SH < cat.y + 150:
             cat.select_next_state()
 
@@ -200,7 +289,10 @@ class Grooming:
             else:
                 cat.action = 2
         if time.time() - cat.start_time > 3.0:
-             cat.select_next_state()
+            cat.select_next_state()
+        elif time.time() - cat.bring_image_time > 60.0:
+            cat.state_machine.handle_event(('Move_Left', 0))
+            cat.bring_image_time = time.time()
 
     @staticmethod
     def cut(cat):
@@ -229,7 +321,10 @@ class Idle:
         cat.current_time += cat.frame_time
         cat.frame = ((cat.frame + cat.frame_num * ACTION_PER_TIME * cat.frame_time) % cat.frame_num)
         if time.time() - cat.start_time > 3.0:
-             cat.select_next_state()
+            cat.select_next_state()
+        elif time.time() - cat.bring_image_time > 60.0:
+            cat.state_machine.handle_event(('Move_Left', 0))
+            cat.bring_image_time = time.time()
 
     @staticmethod
     def cut(cat): # cat 이미지 지정
@@ -244,12 +339,14 @@ class StateMachine:
         self.cat = cat
         self.cur_state = Idle
         self.table = {
-            Idle: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp},
-            Grooming: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp},
-            MoveRightDown: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp},
-            MoveRightUp: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp},
-            MoveLeftDown: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp},
-            MoveLeftUp: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp},
+            Idle: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft},
+            Grooming: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft},
+            MoveRightDown: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft},
+            MoveRightUp: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft},
+            MoveLeftDown: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft},
+            MoveLeftUp: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft},
+            MoveLeft: {bring_image:BringImage},
+            BringImage: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp},
         }
 
     def start(self):
@@ -280,10 +377,12 @@ class Cat:
         self.frame_len = 100
         self.action_len = 100
         self.frame_num = 4
-        self.image = Image.open(r'C:\Programming\SL_project1\resource\cat_sprite_sheet.png')
+        self.image = Image.open(r'..\resource\cat_sprite_sheet.png')
         self.current_image = self.image.crop((self.frame, self.action, self.frame_len, self.action_len))
         self.state_machine = StateMachine(self)
         self.state_machine.start()
+        self.image_window = None
+        self.bring_image_time = time.time()
 
     def cut(self):
         self.state_machine.cut()
