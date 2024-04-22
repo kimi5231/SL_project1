@@ -38,4 +38,5 @@ class Character:
     def update_window(self):
         self.update_label()
         self.window.geometry(f'{self.width}x{self.height}+{self.current_character.x}+{self.current_character.y}')
+        self.window.attributes("-topmost", True)
         self.window.after(10, self.update_window)

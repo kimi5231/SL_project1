@@ -69,13 +69,11 @@ class BringImage:
     def do(cat):
         cat.x += cat.speed
         cat.y += cat.dir_y * cat.speed
-        cat.frame_time = time.time() - cat.current_time
-        cat.current_time += cat.frame_time
-        cat.frame = ((cat.frame + cat.frame_num * ACTION_PER_TIME * cat.frame_time) % cat.frame_num)
+        cat.calculate_frame()
+        cat.image_window.window.geometry(f'300x300+{cat.x - 280}+{cat.y}')
         if cat.x == 300:
             cat.image_window.window.overrideredirect(0)
             cat.select_next_state()
-        cat.image_window.window.geometry(f'300x300+{cat.x - 280}+{cat.y}')
 
     @staticmethod
     def cut(cat):
@@ -102,9 +100,7 @@ class MoveLeft:
     def do(cat):
         cat.x += cat.dir_x * cat.speed
         cat.y += cat.dir_y * cat.speed
-        cat.frame_time = time.time() - cat.current_time
-        cat.current_time += cat.frame_time
-        cat.frame = ((cat.frame + cat.frame_num * ACTION_PER_TIME * cat.frame_time) % cat.frame_num)
+        cat.calculate_frame()
         if 0 > cat.x + 150:
             cat.state_machine.handle_event(('Bring_Image', 0))
 
@@ -134,14 +130,8 @@ class MoveLeftUp:
     def do(cat):
         cat.x += cat.dir_x * cat.speed
         cat.y += cat.dir_y * cat.speed
-        cat.frame_time = time.time() - cat.current_time
-        cat.current_time += cat.frame_time
-        cat.frame = ((cat.frame + cat.frame_num * ACTION_PER_TIME * cat.frame_time) % cat.frame_num)
-        if time.time() - cat.start_time > 3.0:
-             cat.select_next_state()
-        elif time.time() - cat.bring_image_time > 60.0:
-            cat.state_machine.handle_event(('Move_Left', 0))
-            cat.bring_image_time = time.time()
+        cat.calculate_frame()
+        cat.check_time_over()
         if 0 > cat.x - 150 or 0 > cat.y - 150:
             cat.select_next_state()
 
@@ -171,14 +161,8 @@ class MoveLeftDown:
     def do(cat):
         cat.x += cat.dir_x * cat.speed
         cat.y += cat.dir_y * cat.speed
-        cat.frame_time = time.time() - cat.current_time
-        cat.current_time += cat.frame_time
-        cat.frame = ((cat.frame + cat.frame_num * ACTION_PER_TIME * cat.frame_time) % cat.frame_num)
-        if time.time() - cat.start_time > 3.0:
-            cat.select_next_state()
-        elif time.time() - cat.bring_image_time > 60.0:
-            cat.state_machine.handle_event(('Move_Left', 0))
-            cat.bring_image_time = time.time()
+        cat.calculate_frame()
+        cat.check_time_over()
         if 0 > cat.x - 150 or SH < cat.y + 150:
             cat.select_next_state()
 
@@ -208,14 +192,8 @@ class MoveRightUp:
     def do(cat):
         cat.x += cat.dir_x * cat.speed
         cat.y += cat.dir_y * cat.speed
-        cat.frame_time = time.time() - cat.current_time
-        cat.current_time += cat.frame_time
-        cat.frame = ((cat.frame + cat.frame_num * ACTION_PER_TIME * cat.frame_time) % cat.frame_num)
-        if time.time() - cat.start_time > 3.0:
-            cat.select_next_state()
-        elif time.time() - cat.bring_image_time > 60.0:
-            cat.state_machine.handle_event(('Move_Left', 0))
-            cat.bring_image_time = time.time()
+        cat.calculate_frame()
+        cat.check_time_over()
         if SW < cat.x + 150 or 0 > cat.y - 150:
             cat.select_next_state()
 
@@ -245,14 +223,8 @@ class MoveRightDown:
     def do(cat):
         cat.x += cat.dir_x * cat.speed
         cat.y += cat.dir_y * cat.speed
-        cat.frame_time = time.time() - cat.current_time
-        cat.current_time += cat.frame_time
-        cat.frame = ((cat.frame + cat.frame_num * ACTION_PER_TIME * cat.frame_time) % cat.frame_num)
-        if time.time() - cat.start_time > 3.0:
-            cat.select_next_state()
-        elif time.time() - cat.bring_image_time > 60.0:
-            cat.state_machine.handle_event(('Move_Left', 0))
-            cat.bring_image_time = time.time()
+        cat.calculate_frame()
+        cat.check_time_over()
         if SW < cat.x + 150 or SH < cat.y + 150:
             cat.select_next_state()
 
@@ -279,20 +251,14 @@ class Grooming:
 
     @staticmethod
     def do(cat):
-        cat.frame_time = time.time() - cat.current_time
-        cat.current_time += cat.frame_time
-        cat.frame = ((cat.frame + cat.frame_num * ACTION_PER_TIME * cat.frame_time) % cat.frame_num)
+        cat.calculate_frame()
         if int(cat.frame) == 3:
             cat.frame = 0
             if cat.action == 2:
                 cat.action = 3
             else:
                 cat.action = 2
-        if time.time() - cat.start_time > 3.0:
-            cat.select_next_state()
-        elif time.time() - cat.bring_image_time > 60.0:
-            cat.state_machine.handle_event(('Move_Left', 0))
-            cat.bring_image_time = time.time()
+        cat.check_time_over()
 
     @staticmethod
     def cut(cat):
@@ -317,14 +283,8 @@ class Idle:
 
     @staticmethod
     def do(cat): # Idle 상태인 동안 할 것
-        cat.frame_time = time.time() - cat.current_time
-        cat.current_time += cat.frame_time
-        cat.frame = ((cat.frame + cat.frame_num * ACTION_PER_TIME * cat.frame_time) % cat.frame_num)
-        if time.time() - cat.start_time > 3.0:
-            cat.select_next_state()
-        elif time.time() - cat.bring_image_time > 60.0:
-            cat.state_machine.handle_event(('Move_Left', 0))
-            cat.bring_image_time = time.time()
+        cat.calculate_frame()
+        cat.check_time_over()
 
     @staticmethod
     def cut(cat): # cat 이미지 지정
@@ -393,6 +353,11 @@ class Cat:
     def handle_event(self, event):
         self.state_machine.handle_event(('INPUT', event))
 
+    def calculate_frame(self):
+        self.frame_time = time.time() - self.current_time
+        self.current_time += self.frame_time
+        self.frame = ((self.frame + self.frame_num * ACTION_PER_TIME * self.frame_time) % self.frame_num)
+
     def select_next_state(self):
         num = random.randint(1, 6)
         if num == 1:
@@ -407,3 +372,15 @@ class Cat:
             self.state_machine.handle_event(('Change_Move_Left_Down', 0))
         elif num == 6 and 0 < self.x - 150 and 0 < self.y - 150:
             self.state_machine.handle_event(('Change_Move_Left_Up', 0))
+
+    def select_obstructive_behavior(self):
+        num = random.randint(1, 1)
+        if num == 1:
+            self.bring_image_time = time.time()
+            self.state_machine.handle_event(('Move_Left', 0))
+
+    def check_time_over(self):
+        if time.time() - self.start_time > 3.0:
+            self.select_next_state()
+        elif time.time() - self.bring_image_time > 60.0:
+            self.select_obstructive_behavior()

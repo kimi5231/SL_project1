@@ -9,6 +9,7 @@ class ImageWindow:
         self.window = Toplevel()
         self.window.title(title)
         self.window.overrideredirect(1)
+        self.window.attributes("-topmost", True)
         self.get_window_image()
         Label(self.window, image=self.image).pack()
 
