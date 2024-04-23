@@ -1,6 +1,7 @@
 from tkinter import *
 from image_window import ImageWindow
-from PIL import Image, ImageTk
+from notepad import Notepad
+from PIL import Image
 import time
 import random
 import ctypes
@@ -49,6 +50,43 @@ def bring_image(e):
     return e[0] == 'Bring_Image'
 
 
+def open_notepad(e):
+    return e[0] == 'Open_Notepad'
+
+
+class OpenNotepad:
+    @staticmethod
+    def enter(cat, e):
+        cat.speed = 0
+        cat.frame, cat.action = 0, 8
+        cat.frame_num = 8
+        cat.current_time = time.time()
+        cat.notepad = Notepad(cat.x, cat.y, cat.dir_x)
+        cat.notepad.get_text()
+
+    @staticmethod
+    def exit(cat, e):
+        pass
+
+    @staticmethod
+    def do(cat):
+        cat.x += cat.dir_x * cat.speed
+        cat.y += cat.dir_y * cat.speed
+        cat.calculate_frame()
+        cat.notepad.write_text()
+        if cat.notepad.text_index == cat.notepad.text_len-1:
+            cat.select_next_state()
+        else:
+            cat.notepad.text_index += 1
+
+    @staticmethod
+    def cut(cat):
+        cat.current_image = cat.image.crop((int(cat.frame) * cat.frame_len,
+                                            cat.action * cat.action_len,
+                                            int(cat.frame) * cat.frame_len + cat.frame_len,
+                                            cat.action * cat.action_len + cat.action_len))
+
+
 class BringImage:
     @staticmethod
     def enter(cat, e):
@@ -58,8 +96,7 @@ class BringImage:
         cat.frame_num = 8
         cat.current_time = time.time()
         cat.image_window = ImageWindow('Look at me!!!')
-        cat.image_window.window.geometry(f'300x300+{cat.x - 300}+{cat.y}')
-
+        cat.image_window.window.geometry(f'300x300+{cat.x - 270}+{cat.y}')
 
     @staticmethod
     def exit(cat, e):
@@ -70,7 +107,7 @@ class BringImage:
         cat.x += cat.speed
         cat.y += cat.dir_y * cat.speed
         cat.calculate_frame()
-        cat.image_window.window.geometry(f'300x300+{cat.x - 280}+{cat.y}')
+        cat.image_window.window.geometry(f'300x300+{cat.x - 270}+{cat.y}')
         if cat.x == 300:
             cat.image_window.window.overrideredirect(0)
             cat.select_next_state()
@@ -299,14 +336,15 @@ class StateMachine:
         self.cat = cat
         self.cur_state = Idle
         self.table = {
-            Idle: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft},
-            Grooming: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft},
-            MoveRightDown: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft},
-            MoveRightUp: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft},
-            MoveLeftDown: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft},
-            MoveLeftUp: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft},
+            Idle: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad},
+            Grooming: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad},
+            MoveRightDown: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad},
+            MoveRightUp: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad},
+            MoveLeftDown: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad},
+            MoveLeftUp: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad},
             MoveLeft: {bring_image:BringImage},
             BringImage: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp},
+            OpenNotepad: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp},
         }
 
     def start(self):
@@ -342,7 +380,7 @@ class Cat:
         self.state_machine = StateMachine(self)
         self.state_machine.start()
         self.image_window = None
-        self.bring_image_time = time.time()
+        self.obstructive = time.time()
 
     def cut(self):
         self.state_machine.cut()
@@ -374,13 +412,15 @@ class Cat:
             self.state_machine.handle_event(('Change_Move_Left_Up', 0))
 
     def select_obstructive_behavior(self):
-        num = random.randint(1, 1)
+        num = random.randint(1, 2)
+        self.obstructive = time.time()
         if num == 1:
-            self.bring_image_time = time.time()
             self.state_machine.handle_event(('Move_Left', 0))
+        elif num == 2:
+            self.state_machine.handle_event(('Open_Notepad', 0))
 
     def check_time_over(self):
         if time.time() - self.start_time > 3.0:
             self.select_next_state()
-        elif time.time() - self.bring_image_time > 60.0:
+        elif time.time() - self.obstructive > 60.0:
             self.select_obstructive_behavior()
