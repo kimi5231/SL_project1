@@ -25,6 +25,7 @@ class Character:
         # 키 설정.
         self.window.bind('<Escape>', lambda e: self.window.quit())
         self.window.bind("<Button-1>", self.current_character.click)
+        self.window.bind("<ButtonRelease-1>", self.current_character.click_down)
         # 라벨을 윈도우에 추가.
         self.label.pack(fill=BOTH, expand=True)
 

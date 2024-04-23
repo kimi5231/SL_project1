@@ -7,6 +7,7 @@ import random
 import ctypes
 import os
 import pygame
+import pyautogui
 
 
 # cat action speed
@@ -56,6 +57,161 @@ def open_notepad(e):
     return e[0] == 'Open_Notepad'
 
 
+def run_to_mouse(e):
+    return e[0] == 'Run_To_Mouse'
+
+
+def run_away_with_mouse(e):
+    return e[0] == 'Run_Away_With_Mouse'
+
+
+def raise_cat(e):
+    return e[0] == 'Raise_Cat'
+
+
+def run_away(e):
+    return e[0] == 'Run_Away'
+
+
+class RunAway:
+    @staticmethod
+    def enter(cat, e):
+        cat.speed = 5
+        cat.dir_x *= -1
+        cat.dir_y *= -1
+        cat.frame, cat.action = 0, 5
+        cat.frame_num = 8
+        cat.current_time = time.time()
+        cat.start_time = time.time()
+
+    @staticmethod
+    def exit(cat, e):
+        pass
+
+    @staticmethod
+    def do(cat):
+        cat.x += cat.dir_x * cat.speed
+        cat.y += cat.dir_y * cat.speed
+        cat.calculate_frame()
+        if time.time() - cat.start_time > 5.0:
+            cat.select_next_state()
+        elif SW < cat.x + 150 or 0 > cat.x - 150 or SH < cat.y + 150 or 0 > cat.y - 150:
+            cat.select_next_state()
+
+    @staticmethod
+    def cut(cat):
+        cat.current_image = cat.image.crop((int(cat.frame) * cat.frame_len,
+                                            cat.action * cat.action_len,
+                                            int(cat.frame) * cat.frame_len + cat.frame_len,
+                                            cat.action * cat.action_len + cat.action_len))
+
+
+class RaiseCat:
+    @staticmethod
+    def enter(cat, e):
+        cat.frame, cat.action = 0, 1
+        cat.frame_num = 4
+        cat.current_time = time.time()
+        cat.start_time = time.time()
+        cat.mx, cat.my = pyautogui.position()
+
+    @staticmethod
+    def exit(cat, e):
+        pass
+
+    @staticmethod
+    def do(cat):
+        x, y = pyautogui.position()
+        cat.x += x - cat.mx
+        cat.y += y - cat.my
+        cat.mx, cat.my = x, y
+        cat.calculate_frame()
+        if time.time() - cat.start_time > 5.0:
+            cat.state_machine.handle_event(('Run_Away', 0))
+
+    @staticmethod
+    def cut(cat):
+        cat.current_image = cat.image.crop((int(cat.frame) * cat.frame_len,
+                                            cat.action * cat.action_len,
+                                            int(cat.frame) * cat.frame_len + cat.frame_len,
+                                            cat.action * cat.action_len + cat.action_len))
+
+
+class RunAwayWithMouse:
+    @staticmethod
+    def enter(cat, e):
+        cat.speed = 10
+        cat.dir_x *= -1
+        cat.dir_y *= -1
+        cat.frame, cat.action = 0, 5
+        cat.frame_num = 8
+        cat.current_time = time.time()
+        cat.start_time = time.time()
+
+    @staticmethod
+    def exit(cat, e):
+        pass
+
+    @staticmethod
+    def do(cat):
+        cat.x += cat.dir_x * cat.speed
+        cat.y += cat.dir_y * cat.speed
+        cat.calculate_frame()
+        pyautogui.moveTo(cat.x + 50, cat.y + 50)
+        if time.time() - cat.start_time > 5.0:
+            cat.select_next_state()
+        elif SW < cat.x + 150 or 0 > cat.x - 150 or SH < cat.y + 150 or 0 > cat.y - 150:
+            cat.select_next_state()
+
+    @staticmethod
+    def cut(cat):
+        cat.current_image = cat.image.crop((int(cat.frame) * cat.frame_len,
+                                            cat.action * cat.action_len,
+                                            int(cat.frame) * cat.frame_len + cat.frame_len,
+                                            cat.action * cat.action_len + cat.action_len))
+
+
+class RunToMouse:
+    @staticmethod
+    def enter(cat, e):
+        cat.speed = 5
+        cat.frame, cat.action = 0, 5
+        cat.frame_num = 8
+        cat.current_time = time.time()
+        cat.start_time = time.time()
+
+    @staticmethod
+    def exit(cat, e):
+        pass
+
+    @staticmethod
+    def do(cat):
+        x, y = pyautogui.position()
+        if cat.x < x:
+            cat.dir_x = 1
+        else:
+            cat.dir_x = -1
+        if cat.y < y:
+            cat.dir_y = 1
+        else:
+            cat.dir_y = -1
+        cat.x += cat.dir_x * cat.speed
+        cat.y += cat.dir_y * cat.speed
+        cat.calculate_frame()
+        if x + 10 > cat.x > x - 10 and y + 10 > cat.y > y - 10:
+            pyautogui.moveTo(cat.x + 50, cat.y + 50)
+            cat.state_machine.handle_event(('Run_Away_With_Mouse', 0))
+        elif time.time() - cat.start_time > 10.0:
+            cat.select_next_state()
+
+    @staticmethod
+    def cut(cat):
+        cat.current_image = cat.image.crop((int(cat.frame) * cat.frame_len,
+                                            cat.action * cat.action_len,
+                                            int(cat.frame) * cat.frame_len + cat.frame_len,
+                                            cat.action * cat.action_len + cat.action_len))
+
+
 class OpenNotepad:
     @staticmethod
     def enter(cat, e):
@@ -72,8 +228,6 @@ class OpenNotepad:
 
     @staticmethod
     def do(cat):
-        cat.x += cat.dir_x * cat.speed
-        cat.y += cat.dir_y * cat.speed
         cat.calculate_frame()
         cat.notepad.write_text()
         if cat.notepad.text_index == cat.notepad.text_len-1:
@@ -98,6 +252,7 @@ class BringImage:
         cat.frame_num = 8
         cat.current_time = time.time()
         cat.image_window = ImageWindow('Look at me!!!')
+        cat.image_window.window.protocol("WM_DELETE_WINDOW", cat.close_image_window)
         cat.image_window.window.geometry(f'300x300+{cat.x - 270}+{cat.y}')
 
     @staticmethod
@@ -338,15 +493,19 @@ class StateMachine:
         self.cat = cat
         self.cur_state = Idle
         self.table = {
-            Idle: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad},
-            Grooming: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad},
-            MoveRightDown: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad},
-            MoveRightUp: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad},
-            MoveLeftDown: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad},
-            MoveLeftUp: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad},
+            Idle: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad, run_to_mouse:RunToMouse, raise_cat:RaiseCat},
+            Grooming: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad, run_to_mouse:RunToMouse, raise_cat:RaiseCat},
+            MoveRightDown: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad, run_to_mouse:RunToMouse, raise_cat:RaiseCat},
+            MoveRightUp: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad, run_to_mouse:RunToMouse, raise_cat:RaiseCat},
+            MoveLeftDown: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad, run_to_mouse:RunToMouse, raise_cat:RaiseCat},
+            MoveLeftUp: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, move_left:MoveLeft, open_notepad:OpenNotepad, run_to_mouse:RunToMouse, raise_cat:RaiseCat},
             MoveLeft: {bring_image:BringImage},
             BringImage: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp},
             OpenNotepad: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp},
+            RunToMouse: {change_Idle: Idle, change_grooming: Grooming, change_move_right_down: MoveRightDown, change_move_right_up: MoveRightUp, change_move_left_down: MoveLeftDown, change_move_left_up: MoveLeftUp, run_away_with_mouse: RunAwayWithMouse},
+            RunAwayWithMouse: {change_Idle: Idle, change_grooming: Grooming, change_move_right_down: MoveRightDown, change_move_right_up: MoveRightUp, change_move_left_down: MoveLeftDown, change_move_left_up: MoveLeftUp},
+            RaiseCat: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp, run_away:RunAway},
+            RunAway: {change_Idle:Idle, change_grooming:Grooming, change_move_right_down:MoveRightDown, change_move_right_up:MoveRightUp, change_move_left_down:MoveLeftDown, change_move_left_up:MoveLeftUp},
         }
 
     def start(self):
@@ -435,3 +594,12 @@ class Cat:
         pygame.mixer.init()  # 초기화
         sound = pygame.mixer.Sound(path)
         sound.play()
+        self.state_machine.handle_event(('Raise_Cat', 0))
+
+    def close_image_window(self):
+        self.image_window.window.destroy()
+        self.state_machine.handle_event(('Run_To_Mouse', 0))
+
+    def click_down(self, event=None):
+        if self.state_machine.cur_state != RunAway:
+            self.select_next_state()
