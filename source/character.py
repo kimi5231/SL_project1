@@ -22,8 +22,9 @@ class Character:
         self.window.overrideredirect(1)
         # 윈도우가 항상 가장 위에 있도록, 그리고 배경을 투명하게 설정
         self.window.attributes("-topmost", True, '-transparentcolor', 'white')
-        # 종료키 설정.
+        # 키 설정.
         self.window.bind('<Escape>', lambda e: self.window.quit())
+        self.window.bind("<Button-1>", self.current_character.click)
         # 라벨을 윈도우에 추가.
         self.label.pack(fill=BOTH, expand=True)
 

@@ -5,6 +5,8 @@ from PIL import Image
 import time
 import random
 import ctypes
+import os
+import pygame
 
 
 # cat action speed
@@ -424,3 +426,12 @@ class Cat:
             self.select_next_state()
         elif time.time() - self.obstructive > 60.0:
             self.select_obstructive_behavior()
+
+    def click(self, event=None):
+        sounds = None
+        for root, subfolders, files in os.walk(r'..\resource\sound'):
+            sounds = files
+        path = '..\\resource\sound\\' + sounds[random.randint(0, len(sounds) - 1)]
+        pygame.mixer.init()  # 초기화
+        sound = pygame.mixer.Sound(path)
+        sound.play()
