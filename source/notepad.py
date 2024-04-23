@@ -7,7 +7,7 @@ import random
 class Notepad:
     def __init__(self, x, y, dir_x):
         subprocess.Popen(["notepad.exe"])
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.window = pyautogui.getWindowsWithTitle("제목 없음 - Windows 메모장")[0]
         self.window.resizeTo(500, 500)
         if dir_x == 1:
