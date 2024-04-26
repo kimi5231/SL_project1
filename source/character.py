@@ -26,6 +26,8 @@ class Character:
         self.window.bind('<Escape>', lambda e: self.window.quit())
         self.window.bind("<Button-1>", self.current_character.click)
         self.window.bind("<ButtonRelease-1>", self.current_character.click_down)
+        self.window.bind("<KeyPress-1>", self.change_get_image)
+        self.window.bind("<KeyPress-2>", self.change_open_notepad)
         # 라벨을 윈도우에 추가.
         self.label.pack(fill=BOTH, expand=True)
 
@@ -42,3 +44,9 @@ class Character:
         self.window.geometry(f'{self.width}x{self.height}+{self.current_character.x}+{self.current_character.y}')
         self.window.attributes("-topmost", True)
         self.window.after(10, self.update_window)
+
+    def change_get_image(self, event=None):
+        self.current_character.state_machine.handle_event(('Move_Left', 0))
+
+    def change_open_notepad(self, event=None):
+        self.current_character.state_machine.handle_event(('Open_Notepad', 0))
